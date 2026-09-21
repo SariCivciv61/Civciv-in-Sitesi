@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hakkında - Civciv Sitesi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="ust-bar">
+        <div class="logo-ve-baslik">
+            <a href="index.html">
+                <img src="civciv.png" alt="Civciv Logo" class="civciv-logo">
+            </a>
+            <span class="baslik-metni">Hakkında</span>
+        </div>
+        <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
+    </header>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <nav class="yan-menu" id="yanMenu">
+        <div class="menu-baslik">
+            <span>Menü</span>
+            <button class="kapat-btn" onclick="toggleMenu()">&times;</button>
+        </div>
+<ul class="menu-linkler">
+    <li><a href="index.html">Ana Sayfa</a></li>
+    <li><a href="hakkinda.html">Hakkında</a></li>
+    <li><a href="dosyalar.html">Dosyalar</a></li>
+    <li><a href="linkler.html">Linkler</a></li>
+    <li><a href="videolar.html">Videolar</a></li>
+    <li><a href="gorseller.html">Görseller</a></li>
+</ul>
+        <div class="menu-alt-iletisim">
+            <p class="iletisim-baslik">İletişim Bilgileri</p>
+            <p class="email-yazi">ahmetalpalbayrak@gmail.com</p>
+        </div>
+    </nav>
+
+<main class="sayfa-icerik">
+
+    <!-- Metin Kutusu Başlangıcı -->
+    <div style="background-color: #fafafa; padding: 20px; border-radius: 8px; border-left: 5px solid #FFD700; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        
+        <h2 style="color: #333; margin-bottom: 15px; font-size: 20px;">Hoş Geldiniz!</h2>
+        
+        <p style="color: #444; line-height: 1.6; margin-bottom: 15px;">
+            Civciv sitesine hoş geldiniz! Bu web sitesinde SarıCivciv'in paylaştığı her şeyi bulabilirsiniz.'
+        </p>
+
+        <h3 style="color: #8B6508; margin-bottom: 10px; font-size: 16px;">Sitemizde Neler Var?</h3>
+
+        <p style="color: #444; line-height: 1.6; margin-bottom: 15px;">
+            Sitemizde <strong>Linkler</strong>, <strong>Dosyalar</strong>, <strong>Videolar</strong> ve <strong>Görseller</strong> sayfalarımızdan güncel paylaşımlarımızı takip edebilirsiniz.
+        </p>
+
+        <p style="color: #444; line-height: 1.6;">
+            İçeriklerimiz düzenli olarak güncellenmektedir. Görüş ve önerileriniz için menüdeki <em>iletişim adresimizden</em> bize ulaşabilirsiniz.
+        </p>
+
+    </div>
+    <!-- Metin Kutusu Bitişi -->
+
+</main>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
