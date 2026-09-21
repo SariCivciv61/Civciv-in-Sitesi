@@ -1,0 +1,243 @@
+/* Genel Sıfırlama */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+}
+
+/* Üst Sarı Çizgi / Bar */
+.ust-bar {
+    background-color: #FFD700;
+    padding: 12px 15px 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo ve Yazıyı Yana Yana Hizalama */
+.logo-ve-baslik {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: 20px;
+}
+
+.logo-ve-baslik a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+/* Civciv Logosu (70x70) */
+.civciv-logo {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+}
+
+/* Başlık Metni Stili */
+.baslik-metni {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333333;
+}
+
+/* Menü Butonu */
+.menu-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #FFE066;
+    border: 2px solid #B8860B;
+    font-size: 18px;
+    color: #8B6508;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    outline: none;
+    flex-shrink: 0;
+}
+
+.menu-btn:active {
+    background-color: #FFD700;
+}
+
+/* Yan Menü Tasarımı */
+.yan-menu {
+    position: fixed;
+    top: 0;
+    right: -280px;
+    width: 260px;
+    height: 100%;
+    background-color: #ffffff;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+    transition: right 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.yan-menu.acik {
+    right: 0;
+}
+
+.menu-baslik {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #8B6508;
+    border-bottom: 2px solid #FFD700;
+    padding-bottom: 10px;
+}
+
+.kapat-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #8B6508;
+}
+
+.menu-linkler {
+    list-style: none;
+    margin-top: 20px;
+    flex-grow: 1;
+}
+
+.menu-linkler li {
+    margin-bottom: 15px;
+}
+
+.menu-linkler a {
+    text-decoration: none;
+    color: #333333;
+    font-size: 16px;
+    font-weight: bold;
+    display: block;
+    padding: 8px 5px;
+    border-radius: 5px;
+}
+
+.menu-linkler a:hover {
+    background-color: #fff9d6;
+    color: #8B6508;
+}
+
+.menu-alt-iletisim {
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.iletisim-baslik {
+    font-size: 12px;
+    color: #8B6508;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.email-yazi {
+    font-size: 13px;
+    color: #333333;
+    word-break: break-all;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
+    z-index: 999;
+}
+
+.overlay.acik {
+    display: block;
+}
+
+/* İçerik Sayfaları Özel Stilleri */
+.sayfa-icerik {
+    padding: 20px;
+}
+
+/* Dosyalar Sayfası İndirme Kartı */
+.dosya-karti {
+    background-color: #fafafa;
+    border: 1px solid #e0e0e0;
+    border-left: 5px solid #FFD700;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.dosya-karti h3 {
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.indir-btn {
+    display: inline-block;
+    padding: 10px 18px;
+    background-color: #FFD700;
+    color: #333;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid #B8860B;
+}
+
+.indir-btn:active {
+    background-color: #FFE066;
+}
+
+/* Kaydırılabilir Duyuru Kutusu Stili */
+.duyuru-kutusu {
+    background-color: #fffde7; /* Hafif Sarı Arkaplan */
+    border: 2px solid #FFD700;  /* Sarı Kenarlık */
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.duyuru-kutusu {
+    background-color: #fffde7;
+    border: 2px solid #FFD700;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+
+    /* Konum (Aşağı indirme) */
+    transform: translateY(40px);
+
+    /* Sağdan ve soldan daraltma */
+    margin-left: 20px;  /* Soldan boşluk */
+    margin-right: 20px; /* Sağdan boşluk */
+
+    /* KUTUYU AŞAĞI DOĞRU BÜYÜTEN DEĞER */
+    height: 200px; /* Kutunun toplam yüksekliğini belirler (isteğe göre değiştirebilirsin) */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Yükseklik büyüdüğü için iç kaydırma alanını da esnetiyoruz */
+.duyuru-icerik {
+    flex-grow: 1;
+    max-height: none; /* Sabit sınırı kaldırıp kutunun boyuna uyarladık */
+    overflow-y: auto; /* Yazılar kutudan taşarsa kaydırma çubuğu çıkar */
+    padding-right: 5px;
+}
