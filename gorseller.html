@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Görseller - Civciv Sitesi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="ust-bar">
+        <div class="logo-ve-baslik">
+            <a href="index.html">
+                <img src="civciv.png" alt="Civciv Logo" class="civciv-logo">
+            </a>
+            <span class="baslik-metni">Görseller</span>
+        </div>
+        <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
+    </header>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <nav class="yan-menu" id="yanMenu">
+        <div class="menu-baslik">
+            <span>Menü</span>
+            <button class="kapat-btn" onclick="toggleMenu()">&times;</button>
+        </div>
+<ul class="menu-linkler">
+    <li><a href="index.html">Ana Sayfa</a></li>
+    <li><a href="hakkinda.html">Hakkında</a></li>
+    <li><a href="dosyalar.html">Dosyalar</a></li>
+    <li><a href="linkler.html">Linkler</a></li>
+    <li><a href="videolar.html">Videolar</a></li>
+    <li><a href="gorseller.html">Görseller</a></li>
+</ul>
+        <div class="menu-alt-iletisim">
+            <p class="iletisim-baslik">İletişim Bilgileri</p>
+            <p class="email-yazi">ahmetalpalbayrak@gmail.com</p>
+        </div>
+    </nav>
+
+    <main class="sayfa-icerik">
+        <p style="color: #666; font-size: 15px;">Henüz yüklendi veya eklenmiş bir görsel bulunmamaktadır.</p>
+    </main>
+
+
+    <script src="script.js"></script>
+</body>
+</html>
