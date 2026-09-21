@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Minecraft Kule Savunması</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    font-family: 'Press Start 2P', cursive;
+    color: #fff;
+    overflow-x: hidden;
+    padding: 4px;
+    margin: 0;
+  }
+  
+  h1 {
+    font-size: 12px;
+    margin: 4px 0;
+    color: #55ff55;
+    text-shadow: 2px 2px 0 #000;
+    text-align: center;
+  }
+  
+  #game-container {
+    position: relative;
+    border: 3px solid #555;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    width: 95vw;
+    max-width: 900px;
+    aspect-ratio: 20 / 12; /* kare karolar */
+    max-height: 42vh; /* fazla yüksekliği azalt */
+  }
+  
+  canvas {
+    display: block;
+    background: #87CEEB;
+    image-rendering: pixelated;
+    width: 100%;
+    height: 100%;
+  }
+  
+  #ui {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 800px;
+  }
+  
+  .stat {
+    background: #333;
+    border: 2px solid #555;
+    padding: 6px 10px;
+    font-size: 10px;
+    color: #ffaa00;
+  }
+  
+  .stat span { color: #fff; }
+  
+  #tower-buttons {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  button {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    padding: 8px 10px;
+    border: 2px solid #222;
+    cursor: pointer;
+    background: #555;
+    color: #fff;
+    transition: all 0.1s;
+    touch-action: manipulation;
+  }
+  
+  button:hover { transform: scale(1.05); }
+  button:active { transform: scale(0.95); }
+  button.selected { border-color: #55ff55; background: #2a5a2a; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  
+  #chicken-btn { background: #e8c84a; color: #333; }
+  #sheep-btn { background: #f5f5f5; color: #333; }
+  #cow-btn { background: #8B4513; color: #fff; }
+  #donkey-btn { background: #8B7355; color: #fff; }
+  #horse-btn { background: #a0522d; color: #fff; }
+  #sell-btn { background: #8b0000; }
+  #start-btn { background: #2e5a9c; }
+  #restart-btn { background: #8b4513; display: none; }
+  
+  #secret-gold-btn {
+    position: fixed;
+    bottom: 8px;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    opacity: 0.08;
+    cursor: pointer;
+    z-index: 100;
+    border-radius: 3px;
+  }
+  #secret-gold-btn:hover {
+    opacity: 0.25;
+    background: rgba(255,200,0,0.15);
+  }
+  #secret-gold-btn:active {
+    opacity: 0.5;
+  }
+  
+  #password-panel, #cheat-panel {
+    display: none;
+    margin-top: 10px;
+    background: #222;
+    border: 2px solid #555;
+    padding: 10px;
+    max-width: 420px;
+    width: 95%;
+    font-size: 9px;
+  }
+  #password-panel.show, #cheat-panel.show { display: block; }
+  #password-panel input, #cheat-panel input {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    padding: 6px;
+    margin: 4px 4px 4px 0;
+    width: 140px;
+    background: #111;
+    color: #fff;
+    border: 2px solid #555;
+  }
+  #cheat-panel .cheat-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin: 6px 0;
+  }
+  #cheat-msg { color: #ff5555; margin-top: 4px; font-size: 8px; }
+  
+  #message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    border: 3px solid #55ff55;
+    padding: 16px 20px;
+    font-size: 12px;
+    text-align: center;
+    display: none;
+    z-index: 10;
+    max-width: 90%;
+    line-height: 1.5;
+  }
+  
+  #message.show { display: block; }
+  
+  #instructions {
+    margin-top: 8px;
+    font-size: 8px;
+    color: #aaa;
+    text-align: center;
+    line-height: 1.5;
+    max-width: 700px;
+    padding: 0 4px;
+  }
+</style>
+</head>
+<body>
+  <h1>⛏ MINECRAFT KULE SAVUNMASI ⛏</h1>
+  
+  <div id="game-container">
+    <canvas id="gameCanvas" width="1000" height="600"></canvas>
+    <div id="message"></div>
+  </div>
+  
+  <div id="ui">
+    <div class="stat">💚 Can: <span id="lives">20</span></div>
+    <div class="stat">🪙 Altın: <span id="money">250</span></div>
+    <div class="stat">🌊 Dalga: <span id="wave">0</span></div>
+    <div class="stat">👾 Düşman: <span id="enemiesLeft">0</span></div>
+  </div>
+  
+  <div id="tower-buttons">
+    <button id="chicken-btn" onclick="selectTower('chicken')">🐔 Tavuk (100🪙)</button>
+    <button id="sheep-btn" onclick="selectTower('sheep')">🐑 Koyun (200🪙)</button>
+    <button id="cow-btn" onclick="selectTower('cow')">🐄 İnek (350🪙)</button>
+    <button id="donkey-btn" onclick="selectTower('donkey')">🫏 Eşek (500🪙)</button>
+    <button id="horse-btn" onclick="selectTower('horse')">🐴 At (800🪙)</button>
+    <button id="sell-btn" onclick="selectSell()">Sil</button>
+    <button id="start-btn" onclick="startWave()">▶ Dalgayı Başlat</button>
+    <button id="restart-btn" onclick="restartGame()">🔄 Yeniden Başla</button>
+  </div>
+  
+  <div id="instructions">
+    🐔 Tavuk: Hasar 1 | her 1.5 sn | 3x3 | 100🪙<br>
+    🐑 Koyun: Hasar 3 | her 2 sn | 4x4 | 200🪙<br>
+    🐄 İnek: Hasar 5 | her 2.5 sn | 5x5 | 350🪙<br>
+    🫏 Eşek: Hasar 7 | her 3 sn | 5x5 | 500🪙<br>
+    🐴 At: Hasar 10 | her 3.5 sn | 5x5 | 800🪙<br>
+    100. dalgada köy kurtulur | Sil: %75 iade | Yol üstüne kule yok
+  </div>
+  
+  <!-- Gizli buton - şifre panelini açar -->
+  <button id="secret-gold-btn" onclick="openPasswordPanel()" title=""></button>
+  
+  <div id="password-panel">
+    <div>Şifre:</div>
+    <input id="password-input" type="password" maxlength="20" placeholder="Şifre">
+    <button onclick="checkPassword()">Giriş</button>
+    <div id="cheat-msg"></div>
+  </div>
+  
+  <div id="cheat-panel">
+    <div style="color:#55ff55;margin-bottom:6px;">HİLE PANELİ</div>
+    <div class="cheat-row">
+      <input id="gold-amount" type="number" placeholder="Altın">
+      <button onclick="cheatAddGold()">Altın Ver</button>
+    </div>
+    <div class="cheat-row">
+      <button onclick="cheatKillAll()">Tüm Düşmanları Öldür</button>
+    </div>
+    <div class="cheat-row">
+      <input id="stat-lives" type="number" placeholder="Can">
+      <button onclick="cheatSetLives()">Can Ayarla</button>
+    </div>
+    <div class="cheat-row">
+      <input id="stat-wave" type="number" placeholder="Dalga">
+      <button onclick="cheatSetWave()">Dalga Ayarla</button>
+    </div>
+    <div class="cheat-row">
+      <input id="stat-gold" type="number" placeholder="Altın (ayarla)">
+      <button onclick="cheatSetGold()">Altını Ayarla</button>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const TILE = 50;
+const COLS = 20;
+const ROWS = 12;
+
+// Minecraft colors
+const COLORS = {
+  grass: '#5d9b3a',
+  grassDark: '#4a7c2e',
+  path: '#C2B280',
+  pathDark: '#A09060',
+  sky: '#87CEEB'
+};
+
+// Path waypoints (grid)
+const path = [
+  {x:0, y:5}, {x:3, y:5}, {x:3, y:2}, {x:7, y:2},
+  {x:7, y:8}, {x:12, y:8}, {x:12, y:3}, {x:16, y:3},
+  {x:16, y:9}, {x:19, y:9}
+];
+
+// Tüm yol karoları (ara hücreler dahil) — üzerine kule konamaz
+const pathTiles = new Set();
+function addPathSegment(x0, y0, x1, y1) {
+  let dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
+  let sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy, x = x0, y = y0;
+  while (true) {
+    pathTiles.add(x + ',' + y);
+    if (x === x1 && y === y1) break;
+    const e2 = 2 * err;
+    if (e2 > -dy) { err -= dy; x += sx; }
+    if (e2 < dx) { err += dx; y += sy; }
+  }
+}
+for (let i = 0; i < path.length - 1; i++) {
+  addPathSegment(path[i].x, path[i].y, path[i+1].x, path[i+1].y);
+}
+
+const waypoints = path.map(p => ({x: p.x * TILE + TILE/2, y: p.y * TILE + TILE/2}));
+
+// Game state
+let lives = 20;
+let money = 250;
+let wave = 0;
+let selectedTower = null;
+let sellMode = false;
+let towers = [];
+let enemies = [];
+let projectiles = [];
+let particles = [];
+let gameOver = false;
+let victory = false;
+let waveInProgress = false;
+let spawnQueue = [];
+let spawnTimer = 0;
+let frame = 0;
+
+// Tower types - Passive Minecraft mobs
+// range = tileRadius * TILE (3x3 → 1.5 tile, 5x5 → 2.5, 7x7 → 3.5)
+const TOWER_TYPES = {
+  chicken: {
+    cost: 100,
+    range: 1.5 * 50,   // 3x3 karo
+    damage: 1,
+    fireRate: 90,      // her 1.5 sn
+    color: '#e8c84a',
+    projectileColor: '#fff8dc',
+    name: 'Tavuk',
+    emoji: '🐔'
+  },
+  sheep: {
+    cost: 200,
+    range: 2 * 50,     // 4x4 karo
+    damage: 3,
+    fireRate: 120,     // her 2 sn
+    color: '#f5f5f5',
+    projectileColor: '#eeeeee',
+    name: 'Koyun',
+    emoji: '🐑'
+  },
+  cow: {
+    cost: 350,
+    range: 2.5 * 50,   // 5x5 karo
+    damage: 5,
+    fireRate: 150,     // her 2.5 sn
+    color: '#8B4513',
+    projectileColor: '#ffffff',
+    name: 'İnek',
+    emoji: '🐄'
+  },
+  donkey: {
+    cost: 500,
+    range: 2.5 * 50,   // 5x5 karo
+    damage: 7,
+    fireRate: 180,     // her 3 sn
+    color: '#8B7355',
+    projectileColor: '#5c3317',
+    name: 'Eşek',
+    emoji: '🫏'
+  },
+  horse: {
+    cost: 800,
+    range: 2.5 * 50,   // 5x5 karo
+    damage: 10,
+    fireRate: 210,     // her 3.5 sn
+    color: '#a0522d',
+    projectileColor: '#3d2314',
+    name: 'At',
+    emoji: '🐴'
+  }
+};
+
+// Enemy types - Minecraft hostiles (weak → strong)
+const ENEMY_TYPES = {
+  zombie:          { hp: 3,  speed: 0.60, reward: 5,  color: '#2d5a27', size: 14, name: 'Zombi' },
+  skeleton:        { hp: 5,  speed: 0.80, reward: 8,  color: '#d0d0d0', size: 13, name: 'İskelet' },
+  spider:          { hp: 7,  speed: 1.20, reward: 10, color: '#4a004a', size: 12, name: 'Örümcek' },
+  creeper:         { hp: 10, speed: 0.90, reward: 12, color: '#1a8f1a', size: 13, name: 'Creeper' },
+  drowned:         { hp: 12, speed: 0.70, reward: 14, color: '#1a5a6a', size: 14, name: 'Boğulmuş' },
+  enderman:        { hp: 16, speed: 1.00, reward: 18, color: '#1a0033', size: 16, name: 'Enderman' },
+  witch:           { hp: 20, speed: 0.75, reward: 22, color: '#4a2a6a', size: 14, name: 'Cadı' },
+  blaze:           { hp: 25, speed: 0.95, reward: 28, color: '#ff8800', size: 13, name: 'Blaze' },
+  wither_skeleton: { hp: 32, speed: 0.85, reward: 35, color: '#1a1a1a', size: 15, name: 'Wither İskelet' },
+  ravager:         { hp: 45, speed: 0.70, reward: 50, color: '#5a4a3a', size: 20, name: 'Yıkıcı' }
+};
+
+function pickEnemy(w) {
+  // Dalga ilerledikçe daha güçlü moblar
+  if (w <= 2) return 'zombie';
+  if (w <= 4) return Math.random() < 0.7 ? 'zombie' : 'skeleton';
+  if (w <= 7) {
+    const r = Math.random();
+    if (r < 0.35) return 'zombie';
+    if (r < 0.65) return 'skeleton';
+    return 'spider';
+  }
+  if (w <= 12) {
+    const r = Math.random();
+    if (r < 0.2) return 'zombie';
+    if (r < 0.4) return 'skeleton';
+    if (r < 0.65) return 'spider';
+    return 'creeper';
+  }
+  if (w <= 20) {
+    const r = Math.random();
+    if (r < 0.15) return 'skeleton';
+    if (r < 0.3) return 'spider';
+    if (r < 0.5) return 'creeper';
+    if (r < 0.75) return 'drowned';
+    return 'enderman';
+  }
+  if (w <= 35) {
+    const r = Math.random();
+    if (r < 0.15) return 'creeper';
+    if (r < 0.3) return 'drowned';
+    if (r < 0.5) return 'enderman';
+    if (r < 0.75) return 'witch';
+    return 'blaze';
+  }
+  if (w <= 60) {
+    const r = Math.random();
+    if (r < 0.15) return 'enderman';
+    if (r < 0.35) return 'witch';
+    if (r < 0.6) return 'blaze';
+    if (r < 0.85) return 'wither_skeleton';
+    return 'ravager';
+  }
+  // Geç oyun
+  const r = Math.random();
+  if (r < 0.15) return 'witch';
+  if (r < 0.35) return 'blaze';
+  if (r < 0.65) return 'wither_skeleton';
+  return 'ravager';
+}
+
+function getWaveComposition(w) {
+  const comps = [];
+  const count = w === 1 ? 3 : 3 + Math.floor((w - 1) * 1.5);
+  for (let i = 0; i < count; i++) {
+    comps.push(pickEnemy(w));
+  }
+  return comps;
+}
+
+function selectTower(type) {
+  if (gameOver || victory) return;
+  sellMode = false;
+  document.getElementById('sell-btn').classList.remove('selected');
+  if (money >= TOWER_TYPES[type].cost) {
+    selectedTower = type;
+    document.querySelectorAll('#tower-buttons button').forEach(b => b.classList.remove('selected'));
+    document.getElementById(type + '-btn').classList.add('selected');
+  }
+}
+
+function selectSell() {
+  if (gameOver || victory) return;
+  selectedTower = null;
+  sellMode = !sellMode;
+  document.querySelectorAll('#tower-buttons button').forEach(b => b.classList.remove('selected'));
+  if (sellMode) {
+    document.getElementById('sell-btn').classList.add('selected');
+  }
+}
+
+function canPlace(gx, gy) {
+  if (pathTiles.has(gx + ',' + gy)) return false;
+  for (let t of towers) {
+    if (t.gx === gx && t.gy === gy) return false;
+  }
+  if (gx < 0 || gx >= COLS || gy < 0 || gy >= ROWS) return false;
+  return true;
+}
+
+function getTowerAt(gx, gy) {
+  return towers.find(t => t.gx === gx && t.gy === gy);
+}
+
+canvas.addEventListener('click', handleClick);
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mx = (touch.clientX - rect.left) * scaleX;
+  const my = (touch.clientY - rect.top) * scaleY;
+  handleClickCoords(mx, my);
+});
+
+function handleClick(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+  handleClickCoords(mx, my);
+}
+
+function handleClickCoords(mx, my) {
+  if (gameOver || victory) return;
+  const gx = Math.floor(mx / TILE);
+  const gy = Math.floor(my / TILE);
+
+  // Sell mode
+  if (sellMode) {
+    const tower = getTowerAt(gx, gy);
+    if (tower) {
+      const refund = Math.floor(tower.cost * 0.75);
+      money += refund;
+      // Remove tower
+      const idx = towers.indexOf(tower);
+      if (idx > -1) towers.splice(idx, 1);
+      createParticles(tower.x, tower.y, '#ffaa00', 12);
+      sellMode = false;
+      document.getElementById('sell-btn').classList.remove('selected');
+      updateUI();
+    }
+    return;
+  }
+
+  // Place mode
+  if (selectedTower && canPlace(gx, gy) && money >= TOWER_TYPES[selectedTower].cost) {
+    money -= TOWER_TYPES[selectedTower].cost;
+    const def = TOWER_TYPES[selectedTower];
+    towers.push({
+      type: selectedTower,
+      gx, gy,
+      x: gx * TILE + TILE/2,
+      y: gy * TILE + TILE/2,
+      cooldown: 0,
+      facingBack: false,
+      animTimer: 0,
+      ...def
+    });
+    selectedTower = null;
+    document.querySelectorAll('#tower-buttons button').forEach(b => b.classList.remove('selected'));
+    updateUI();
+  }
+}
+
+function startWave() {
+  if (waveInProgress || gameOver || victory) return;
+  wave++;
+  spawnQueue = getWaveComposition(wave);
+  waveInProgress = true;
+  spawnTimer = 0;
+  updateUI();
+  document.getElementById('start-btn').disabled = true;
+}
+
+function spawnEnemy() {
+  if (spawnQueue.length === 0) return;
+  const type = spawnQueue.shift();
+  const def = ENEMY_TYPES[type];
+  const hpBonus = Math.floor(Math.max(0, wave - 3) * 0.8); // erken dalgalarda base can korunsun
+  enemies.push({
+    type,
+    x: waypoints[0].x,
+    y: waypoints[0].y,
+    hp: def.hp + hpBonus,
+    maxHp: def.hp + hpBonus,
+    speed: def.speed + wave * 0.015,
+    reward: def.reward + Math.floor(wave / 2),
+    color: def.color,
+    size: def.size,
+    name: def.name,
+    waypointIndex: 0
+  });
+}
+
+function updateEnemies() {
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    if (e.waypointIndex >= waypoints.length - 1) {
+      lives--;
+      enemies.splice(i, 1);
+      createParticles(e.x, e.y, '#ff0000', 8);
+      if (lives <= 0) {
+        lives = 0;
+        gameOver = true;
+        showMessage('💀 OYUN BİTTİ!\nDüşmanlar köyü ele geçirdi...');
+        document.getElementById('restart-btn').style.display = 'inline-block';
+      }
+      updateUI();
+      continue;
+    }
+    
+    const target = waypoints[e.waypointIndex + 1];
+    const dx = target.x - e.x;
+    const dy = target.y - e.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    
+    if (dist < e.speed) {
+      e.x = target.x;
+      e.y = target.y;
+      e.waypointIndex++;
+    } else {
+      e.x += (dx / dist) * e.speed;
+      e.y += (dy / dist) * e.speed;
+    }
+  }
+}
+
+function findNearestEnemy(t) {
+  let nearest = null;
+  let nearestDist = t.range;
+  for (let e of enemies) {
+    const dx = e.x - t.x;
+    const dy = e.y - t.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearest = e;
+    }
+  }
+  return nearest;
+}
+
+function updateTowers() {
+  for (let t of towers) {
+    const nearest = findNearestEnemy(t);
+
+    if (t.type === 'chicken') {
+      // Turns around only when enemy in range
+      if (nearest && t.cooldown <= 0 && !t.facingBack) {
+        t.facingBack = true;
+        t.cooldown = t.fireRate;
+        t.animTimer = 0;
+      }
+      if (t.facingBack) {
+        t.animTimer++;
+        if (t.animTimer === 12 && nearest) {
+          projectiles.push({
+            x: t.x, y: t.y - 8, target: nearest,
+            speed: 5.5, damage: t.damage, color: t.projectileColor, isEgg: true
+          });
+        }
+        if (t.animTimer >= 22) t.facingBack = false;
+      }
+      if (t.cooldown > 0) t.cooldown--;
+    }
+
+    else if (t.type === 'sheep') {
+      // Throws wool every 2s if enemy in range (no turn animation)
+      if (nearest && t.cooldown <= 0) {
+        t.cooldown = t.fireRate;
+        projectiles.push({
+          x: t.x, y: t.y - 6, target: nearest,
+          speed: 4.5, damage: t.damage, color: t.projectileColor, isWool: true
+        });
+      }
+      if (t.cooldown > 0) t.cooldown--;
+    }
+
+    else if (t.type === 'cow') {
+      // Turns back, quickly squirts milk, turns front (short animation)
+      if (nearest && t.cooldown <= 0 && !t.facingBack) {
+        t.facingBack = true;
+        t.cooldown = t.fireRate;
+        t.animTimer = 0;
+      }
+      if (t.facingBack) {
+        t.animTimer++;
+        // Very short squirt window
+        if (t.animTimer === 6 && nearest) {
+          projectiles.push({
+            x: t.x, y: t.y - 4, target: nearest,
+            speed: 6, damage: t.damage, color: t.projectileColor, isMilk: true
+          });
+        }
+        // Quick return to front
+        if (t.animTimer >= 12) t.facingBack = false;
+      }
+      if (t.cooldown > 0) t.cooldown--;
+    }
+
+    else if (t.type === 'donkey' || t.type === 'horse') {
+      if (nearest && t.cooldown <= 0) {
+        t.cooldown = t.fireRate;
+        projectiles.push({
+          x: t.x, y: t.y - 6, target: nearest,
+          speed: t.type === 'horse' ? 8 : 7,
+          damage: t.damage, color: t.projectileColor, isHoof: true
+        });
+      }
+      if (t.cooldown > 0) t.cooldown--;
+    }
+  }
+}
+
+function updateProjectiles() {
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    if (!p.target || p.target.hp <= 0) {
+      projectiles.splice(i, 1);
+      continue;
+    }
+    
+    const dx = p.target.x - p.x;
+    const dy = p.target.y - p.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    
+    if (dist < 8) {
+      p.target.hp -= p.damage;
+      createParticles(p.target.x, p.target.y, '#ffffaa', 5);
+      projectiles.splice(i, 1);
+    } else {
+      p.x += (dx / dist) * p.speed;
+      p.y += (dy / dist) * p.speed;
+    }
+  }
+  
+  // Remove dead enemies
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    if (enemies[i].hp <= 0) {
+      money += enemies[i].reward;
+      createParticles(enemies[i].x, enemies[i].y, '#55ff55', 10);
+      enemies.splice(i, 1);
+      updateUI();
+    }
+  }
+}
+
+function createParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 0.5) * 4,
+      life: 18 + Math.random() * 12,
+      color,
+      size: 2 + Math.random() * 3
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    p.size *= 0.94;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawBackground() {
+  ctx.fillStyle = COLORS.sky;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const isPath = pathTiles.has(x + ',' + y);
+      if (isPath) {
+        ctx.fillStyle = (x + y) % 2 === 0 ? COLORS.path : COLORS.pathDark;
+      } else {
+        ctx.fillStyle = (x + y) % 2 === 0 ? COLORS.grass : COLORS.grassDark;
+      }
+      ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+      
+      if (!isPath) {
+        ctx.fillStyle = 'rgba(0,0,0,0.04)';
+        ctx.fillRect(x * TILE + 3, y * TILE + 3, 5, 5);
+        ctx.fillRect(x * TILE + 26, y * TILE + 28, 4, 4);
+      }
+    }
+  }
+  
+  // Path line
+  ctx.strokeStyle = '#8B6914';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(waypoints[0].x, waypoints[0].y);
+  for (let i = 1; i < waypoints.length; i++) {
+    ctx.lineTo(waypoints[i].x, waypoints[i].y);
+  }
+  ctx.stroke();
+}
+
+function drawTower(t) {
+  if (t.type === 'chicken') {
+    const s = 14;
+    ctx.fillStyle = t.color;
+    ctx.beginPath();
+    ctx.ellipse(t.x, t.y + 2, s, s * 0.85, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f5e6a3';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y - 10, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e67e22';
+    ctx.beginPath();
+    if (t.facingBack) {
+      ctx.moveTo(t.x - 3, t.y - 10); ctx.lineTo(t.x + 3, t.y - 10); ctx.lineTo(t.x, t.y - 6);
+    } else {
+      ctx.moveTo(t.x + 6, t.y - 11); ctx.lineTo(t.x + 14, t.y - 9); ctx.lineTo(t.x + 6, t.y - 7);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(t.x - 2, t.y - 17, 3, 0, Math.PI * 2);
+    ctx.arc(t.x + 2, t.y - 18, 3.5, 0, Math.PI * 2);
+    ctx.arc(t.x + 5, t.y - 16, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    if (!t.facingBack) {
+      ctx.fillStyle = '#222';
+      ctx.beginPath();
+      ctx.arc(t.x - 3, t.y - 11, 2, 0, Math.PI * 2);
+      ctx.arc(t.x + 4, t.y - 11, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#e8d48b';
+      ctx.beginPath(); ctx.arc(t.x, t.y - 10, 8, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(t.x - 5, t.y + 12); ctx.lineTo(t.x - 7, t.y + 20);
+    ctx.moveTo(t.x + 5, t.y + 12); ctx.lineTo(t.x + 7, t.y + 20);
+    ctx.stroke();
+  }
+  else if (t.type === 'sheep') {
+    // Fluffy white body
+    ctx.fillStyle = '#f5f5f5';
+    ctx.beginPath();
+    ctx.ellipse(t.x, t.y + 2, 16, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Head
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y - 10, 8, 0, Math.PI * 2);
+    ctx.fill();
+    // Eyes
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(t.x - 4, t.y - 12, 3, 3);
+    ctx.fillRect(t.x + 1, t.y - 12, 3, 3);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(t.x - 3, t.y - 11, 1.5, 1.5);
+    ctx.fillRect(t.x + 2, t.y - 11, 1.5, 1.5);
+    // Legs
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(t.x - 6, t.y + 12); ctx.lineTo(t.x - 7, t.y + 20);
+    ctx.moveTo(t.x + 6, t.y + 12); ctx.lineTo(t.x + 7, t.y + 20);
+    ctx.stroke();
+  }
+  else if (t.type === 'cow') {
+    // Brown body
+    ctx.fillStyle = t.facingBack ? '#6b3410' : '#8B4513';
+    ctx.beginPath();
+    ctx.ellipse(t.x, t.y + 3, 17, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Spots
+    ctx.fillStyle = '#5a2d0c';
+    ctx.beginPath(); ctx.ellipse(t.x - 6, t.y, 5, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(t.x + 7, t.y + 4, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+    // Head
+    ctx.fillStyle = '#8B4513';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y - 12, 10, 0, Math.PI * 2);
+    ctx.fill();
+    // Snout
+    if (!t.facingBack) {
+      ctx.fillStyle = '#c4a484';
+      ctx.beginPath();
+      ctx.ellipse(t.x + 2, t.y - 8, 6, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Nostrils
+      ctx.fillStyle = '#333';
+      ctx.fillRect(t.x + 2, t.y - 8, 2, 2);
+      ctx.fillRect(t.x + 6, t.y - 8, 2, 2);
+    }
+    // Eyes
+    if (!t.facingBack) {
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(t.x - 5, t.y - 14, 3, 3);
+      ctx.fillRect(t.x + 2, t.y - 14, 3, 3);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(t.x - 4, t.y - 13, 1.5, 1.5);
+      ctx.fillRect(t.x + 3, t.y - 13, 1.5, 1.5);
+    }
+    // Horns
+    ctx.strokeStyle = '#ddd'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(t.x - 6, t.y - 18); ctx.lineTo(t.x - 10, t.y - 24);
+    ctx.moveTo(t.x + 6, t.y - 18); ctx.lineTo(t.x + 10, t.y - 24);
+    ctx.stroke();
+    // Legs
+    ctx.strokeStyle = '#5a2d0c'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(t.x - 7, t.y + 14); ctx.lineTo(t.x - 8, t.y + 22);
+    ctx.moveTo(t.x + 7, t.y + 14); ctx.lineTo(t.x + 8, t.y + 22);
+    ctx.stroke();
+  }
+  else if (t.type === 'donkey' || t.type === 'horse') {
+    const bodyColor = t.type === 'horse' ? '#a0522d' : '#8B7355';
+    const headColor = t.type === 'horse' ? '#8b4513' : '#6b5b45';
+    // Body
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.ellipse(t.x, t.y + 2, 18, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Neck + head
+    ctx.fillStyle = headColor;
+    ctx.beginPath();
+    ctx.ellipse(t.x + 10, t.y - 10, 7, 10, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(t.x + 14, t.y - 16, 8, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Ears (eşek daha uzun)
+    ctx.fillStyle = headColor;
+    if (t.type === 'donkey') {
+      ctx.fillRect(t.x + 10, t.y - 28, 3, 10);
+      ctx.fillRect(t.x + 16, t.y - 28, 3, 10);
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(t.x + 8, t.y - 14, 4, 8, -0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Eye
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(t.x + 14, t.y - 18, 3, 3);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(t.x + 15, t.y - 17, 1.5, 1.5);
+    // Legs
+    ctx.strokeStyle = '#5c3317'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(t.x - 8, t.y + 10); ctx.lineTo(t.x - 10, t.y + 22);
+    ctx.moveTo(t.x - 2, t.y + 10); ctx.lineTo(t.x - 2, t.y + 22);
+    ctx.moveTo(t.x + 4, t.y + 10); ctx.lineTo(t.x + 5, t.y + 22);
+    ctx.moveTo(t.x + 10, t.y + 10); ctx.lineTo(t.x + 12, t.y + 22);
+    ctx.stroke();
+  }
+}
+
+function drawEnemy(e) {
+  // Body
+  ctx.fillStyle = e.color;
+  ctx.beginPath();
+  ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(e.x - 5, e.y - 4, 4, 4);
+  ctx.fillRect(e.x + 1, e.y - 4, 4, 4);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(e.x - 3, e.y - 3, 2, 2);
+  ctx.fillRect(e.x + 3, e.y - 3, 2, 2);
+  
+  // Special features
+  if (e.type === 'creeper') {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(e.x - 3, e.y + 2, 6, 4);
+  } else if (e.type === 'spider') {
+    ctx.strokeStyle = e.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(e.x - 10, e.y); ctx.lineTo(e.x - 16, e.y - 4);
+    ctx.moveTo(e.x + 10, e.y); ctx.lineTo(e.x + 16, e.y - 4);
+    ctx.stroke();
+  } else if (e.type === 'enderman') {
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(e.x - 5, e.y - 5, 4, 3);
+    ctx.fillRect(e.x + 1, e.y - 5, 4, 3);
+  } else if (e.type === 'drowned') {
+    ctx.fillStyle = '#3a8a9a';
+    ctx.fillRect(e.x - 4, e.y + 4, 8, 3);
+  } else if (e.type === 'witch') {
+    ctx.fillStyle = '#2a1a3a';
+    ctx.beginPath();
+    ctx.moveTo(e.x, e.y - e.size - 6);
+    ctx.lineTo(e.x - 8, e.y - e.size + 4);
+    ctx.lineTo(e.x + 8, e.y - e.size + 4);
+    ctx.closePath();
+    ctx.fill();
+  } else if (e.type === 'blaze') {
+    ctx.fillStyle = '#ffcc00';
+    ctx.beginPath();
+    ctx.arc(e.x - 8, e.y, 3, 0, Math.PI * 2);
+    ctx.arc(e.x + 8, e.y, 3, 0, Math.PI * 2);
+    ctx.arc(e.x, e.y - 8, 3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (e.type === 'wither_skeleton') {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(e.x - 5, e.y - 4, 4, 4);
+    ctx.fillRect(e.x + 1, e.y - 4, 4, 4);
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(e.x - 3, e.y - 3, 2, 2);
+    ctx.fillRect(e.x + 3, e.y - 3, 2, 2);
+  } else if (e.type === 'ravager') {
+    ctx.fillStyle = '#3a2a1a';
+    ctx.beginPath();
+    ctx.ellipse(e.x, e.y + 4, e.size + 4, e.size * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(e.x - 6, e.y - 6, 4, 4);
+    ctx.fillRect(e.x + 2, e.y - 6, 4, 4);
+  }
+  
+  // HP bar + sayı
+  const barW = 26;
+  const hpPct = Math.max(0, e.hp / e.maxHp);
+  ctx.fillStyle = '#222';
+  ctx.fillRect(e.x - barW/2, e.y - e.size - 12, barW, 6);
+  ctx.fillStyle = hpPct > 0.5 ? '#55ff55' : hpPct > 0.25 ? '#ffaa00' : '#ff3333';
+  ctx.fillRect(e.x - barW/2, e.y - e.size - 12, barW * hpPct, 6);
+  // Can sayısı
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(Math.ceil(e.hp), e.x, e.y - e.size - 9);
+}
+
+function drawProjectile(p) {
+  if (p.isEgg) {
+    ctx.fillStyle = '#fff8dc';
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, 5, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ddd';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else if (p.isWool) {
+    // Fluffy wool ball
+    ctx.fillStyle = '#f0f0f0';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e0e0e0';
+    ctx.beginPath();
+    ctx.arc(p.x - 2, p.y - 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (p.isMilk) {
+    // Milk splash / droplet
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, 4, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y + 4, 5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (p.isHoof) {
+    // Nal / toynak
+    ctx.fillStyle = '#5c3317';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0.2, Math.PI - 0.2);
+    ctx.lineTo(p.x - 5, p.y + 2);
+    ctx.lineTo(p.x + 5, p.y + 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#3d2314';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawParticles() {
+  for (let p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life / 25);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function draw() {
+  drawBackground();
+  
+  // Towers
+  for (let t of towers) {
+    // Görüş alanı çok az silik
+    ctx.strokeStyle = 'rgba(255, 220, 50, 0.28)';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255, 220, 50, 0.06)';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
+    ctx.fill();
+    
+    drawTower(t);
+  }
+  
+  // Enemies
+  for (let e of enemies) drawEnemy(e);
+  
+  // Projectiles
+  for (let p of projectiles) drawProjectile(p);
+  
+  // Particles
+  drawParticles();
+  
+  // Wave clear check
+  if (waveInProgress && enemies.length === 0 && spawnQueue.length === 0) {
+    waveInProgress = false;
+    document.getElementById('start-btn').disabled = false;
+    money += 25 + wave * 6;
+    updateUI();
+    if (wave >= 100) {
+      victory = true;
+      showMessage('🏆 TEBRİKLER!\n100 dalgayı savundun!\nKöy kurtuldu!');
+      document.getElementById('restart-btn').style.display = 'inline-block';
+    }
+  }
+}
+
+function openPasswordPanel() {
+  const cheat = document.getElementById('cheat-panel');
+  if (cheat.classList.contains('show')) return; // zaten açık
+  const panel = document.getElementById('password-panel');
+  panel.classList.toggle('show');
+  document.getElementById('cheat-msg').textContent = '';
+  document.getElementById('password-input').value = '';
+}
+
+function checkPassword() {
+  const val = document.getElementById('password-input').value;
+  const msg = document.getElementById('cheat-msg');
+  if (val === 'ATUSULI') {
+    document.getElementById('password-panel').classList.remove('show');
+    document.getElementById('cheat-panel').classList.add('show');
+  } else {
+    msg.textContent = 'Yanlış şifre';
+  }
+}
+
+function cheatAddGold() {
+  const n = parseInt(document.getElementById('gold-amount').value, 10);
+  if (!isNaN(n) && n > 0) {
+    money += n;
+    updateUI();
+  }
+}
+
+function cheatKillAll() {
+  for (let e of enemies) {
+    createParticles(e.x, e.y, '#55ff55', 8);
+    money += e.reward;
+  }
+  enemies = [];
+  spawnQueue = [];
+  updateUI();
+}
+
+function cheatSetLives() {
+  const n = parseInt(document.getElementById('stat-lives').value, 10);
+  if (!isNaN(n) && n >= 0) {
+    lives = n;
+    if (lives > 0) {
+      gameOver = false;
+      document.getElementById('message').classList.remove('show');
+    }
+    updateUI();
+  }
+}
+
+function cheatSetWave() {
+  const n = parseInt(document.getElementById('stat-wave').value, 10);
+  if (!isNaN(n) && n >= 0) {
+    wave = n;
+    updateUI();
+  }
+}
+
+function cheatSetGold() {
+  const n = parseInt(document.getElementById('stat-gold').value, 10);
+  if (!isNaN(n) && n >= 0) {
+    money = n;
+    updateUI();
+  }
+}
+
+function updateUI() {
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('money').textContent = money;
+  document.getElementById('wave').textContent = wave;
+  document.getElementById('enemiesLeft').textContent = enemies.length + spawnQueue.length;
+  
+  document.getElementById('chicken-btn').disabled = money < 100 || gameOver || victory;
+  document.getElementById('sheep-btn').disabled = money < 200 || gameOver || victory;
+  document.getElementById('cow-btn').disabled = money < 350 || gameOver || victory;
+  document.getElementById('donkey-btn').disabled = money < 500 || gameOver || victory;
+  document.getElementById('horse-btn').disabled = money < 800 || gameOver || victory;
+}
+
+function showMessage(text) {
+  const msg = document.getElementById('message');
+  msg.innerHTML = text.replace(/\n/g, '<br>');
+  msg.classList.add('show');
+}
+
+function restartGame() {
+  lives = 20;
+  money = 250;
+  wave = 0;
+  selectedTower = null;
+  sellMode = false;
+  towers = [];
+  enemies = [];
+  projectiles = [];
+  particles = [];
+  gameOver = false;
+  victory = false;
+  waveInProgress = false;
+  spawnQueue = [];
+  document.getElementById('message').classList.remove('show');
+  document.getElementById('restart-btn').style.display = 'none';
+  document.getElementById('start-btn').disabled = false;
+  document.querySelectorAll('#tower-buttons button').forEach(b => b.classList.remove('selected'));
+  updateUI();
+}
+
+function gameLoop() {
+  frame++;
+  
+  if (!gameOver && !victory) {
+    if (waveInProgress && spawnQueue.length > 0) {
+      spawnTimer++;
+      if (spawnTimer >= 32) {
+        spawnEnemy();
+        spawnTimer = 0;
+      }
+    }
+    
+    updateEnemies();
+    updateTowers();
+    updateProjectiles();
+  }
+  
+  updateParticles();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+updateUI();
+gameLoop();
+</script>
+</body>
+</html>
